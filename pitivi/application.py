@@ -148,8 +148,11 @@ class Pitivi(Loggable, Signallable):
         self.debug("shutting down")
         # we refuse to close if we're running a user interface and the user
         # doesn't want us to close the current project.
+        print 'self.current: '
+        print self.current
         if self.current and not self.projectManager.closeRunningProject():
             self.warning("Not closing since running project doesn't want to close")
+            print "Not closing since running project doesn't want to close"
             return False
         self.threads.stopAllThreads()
         self.settings.storeSettings()
@@ -184,6 +187,7 @@ class Pitivi(Loggable, Signallable):
 
     def _projectManagerNewProjectLoaded(self, projectManager, project):
         self.current = project
+        print 'project manager new project loaded'
         self.action_log.clean()
         self.timelineLogObserver.startObserving(project.timeline)
         self.projectLogObserver.startObserving(project)

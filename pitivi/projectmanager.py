@@ -159,8 +159,10 @@ class ProjectManager(Signallable, Loggable):
         if self.current is None:
             return True
 
-        if not self.emit("closing-project", self.current):
-            return False
+        # this is broken for some reason..
+        #if not self.emit("closing-project", self.current):
+        #    print 'failed emit closing project'
+        #    return False
 
         self.emit("project-closed", self.current)
         self.current.disconnect_by_function(self._projectChangedCb)
