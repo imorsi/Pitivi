@@ -5,6 +5,7 @@ import pangocairo
 import gobject
 import gst
 import urllib
+import math
 
 class TitleSource(gst.BaseSrc):
     __gsttemplates__ = (
@@ -33,11 +34,14 @@ class TitleSource(gst.BaseSrc):
         self.set_format(gst.FORMAT_TIME)
 
         self.text = text
+        print 'text: ',  urllib.unquote(self.text)
         self.font = font
         self.text_size = text_size
         self.x_alignment = x_alignment
         self.y_alignment = y_alignment
-        self.bg_color = bg_color if bg_color is not None else (0, 0, 0 , 0)
+        print ('text elem bg_color: ', bg_color)
+        self.bg_color = bg_color if bg_color is not None else (0, 0, 0, 0)
+        print ('text elem self.bg_color: ', self.bg_color)
         self.fg_color = fg_color 
         self.layout_alignment = pango.ALIGN_LEFT
         if layout_alignment == 'right':
@@ -59,6 +63,7 @@ class TitleSource(gst.BaseSrc):
 
         # background
         #if self.bg_color is not None:
+        #print ('setting cr rgba: ', self.bg_color)
         cr.set_source_rgba(*self.bg_color)
         cr.rectangle(0, 0, width, height)
         cr.fill()
@@ -68,21 +73,29 @@ class TitleSource(gst.BaseSrc):
         # cr.set_source_rgba(*self.fg_color)
         pcr = pangocairo.CairoContext(cr)
         layout = pcr.create_layout()
-        layout.set_font_description(
-            pango.FontDescription("%s %d" % (self.font, self.text_size)))
+        #layout.set_font_description(
+            #pango.FontDescription("%s %d" % (self.font, self.text_size)))
         self.text = urllib.unquote(self.text)
         safeText = self.text.replace('<br>','\n').replace('&nbsp;',' ')
-        #safeText = self.bg_color
         #layout.set_width = width
+        #print 'textelem text: ',safeText
+        #markup = pango.parse_markup(safeText)
+        #layout.set_attributes(markup[0])
+        #layout.set_text(markup[1])
+        #print 'layout text: ',layout.get_text() 
         layout.set_markup(safeText)
+        #layout.set_text(safeText)
         layout.set_single_paragraph_mode(False)
         #layout.set_width(width)
         #layout.set_wrap(pango.WRAP_WORD_CHAR)
         layout.set_alignment(self.layout_alignment)
         (ink, (x_bearing, y_bearing, t_width, t_height)) = \
             layout.get_pixel_extents()
+        #   print 'width:%f,t_width:%f,height:%f,t_height:%f,xbearing:%f,ybearing:%f'%(width,t_width,height,t_height,x_bearing,y_bearing)
         x = (width - t_width) * self.x_alignment - x_bearing
         y = (height - t_height) * self.y_alignment - y_bearing
+        #print 'putting text at %f,%f'%(x,y)
+        #print layout.get_text()
         cr.move_to(x, y)
         pcr.show_layout(layout)
 

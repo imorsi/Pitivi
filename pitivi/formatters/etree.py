@@ -20,6 +20,7 @@
 # Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+import re
 from gettext import gettext as _
 import gobject
 gobject.threads_init()
@@ -214,10 +215,11 @@ class ElementTreeFormatter(Formatter):
                 props['text_size'] = int(size_str)
             if 'bg_color' in element.attrib:
                 props['bg_color'] = self._loadColor(element.attrib["bg_color"])
+                print 'loaded bg color as: ',props['bg_color']
             if 'fg_color' in element.attrib:
                 props['fg_color'] = self._loadColor(element.attrib["fg_color"])
-                props['x_alignment'] = float(element.attrib["x_alignment"])
-                props['y_alignment'] = float(element.attrib["y_alignment"])
+            props['x_alignment'] = float(element.attrib["x_alignment"])
+            props['y_alignment'] = float(element.attrib["y_alignment"])
             if 'layout_alignment' in element.attrib:
                 props['layout_alignment'] = element.attrib['layout_alignment']
             factory = klass(**props)
@@ -262,9 +264,14 @@ class ElementTreeFormatter(Formatter):
         return element
     
     def _saveColor(self, color):
-        return '#%02x%02x%02x%02x' % tuple(
-            int(x * 255) for x in (color[0], color[1], color[2], color[3]))
-    
+        return '#%02x%02x%02x' % tuple( 
+            int(x * 255) for x in (color[0], color[1], color[2]))
+   
+    def _loadColor(self, str):
+        match = re.match('#(..)(..)(..)$', str)
+        assert match, "couldn't parse saved color %r" % str
+        return tuple(int(x, 16) / 255.0 for x in match.groups())
+        
     def _saveTitleSourceFactory(self, element, source):
         props = source.source_kw
         element.attrib["text"] = props["text"]
@@ -792,12 +799,13 @@ class ElementTreeFormatter(Formatter):
         discoverer.connect("discovery-error", self._discovererDiscoveryErrorCb,
                 project, discover_sources, uris, closure, project_uri)
         
-        if not sources:
+        if not sources or len(discover_sources) == 0:
             self._finishLoadingProject(project)
             return
         # start the rediscovering from the first source
-        source = discover_sources[0]
-        discoverer.addUri(source.uri)
+        if len(discover_sources) > 0:
+            source = discover_sources[0]
+            discoverer.addUri(source.uri)
     
     def _findFactoryContextKey(self, old_factory):
         key = None

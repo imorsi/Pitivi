@@ -203,6 +203,7 @@ class Renderer(Actioner):
 
     def _positionCb(self, unused_pipeline, position):
         self.debug("%r %r", unused_pipeline, position)
+        print ("renderer got position update %r %r", unused_pipeline, position)
         text = None
         timediff = time.time() - self.timestarted
         length = self.project.timeline.duration
@@ -212,6 +213,7 @@ class Renderer(Actioner):
             # if the position is non-null
             totaltime = (timediff * float(length) / float(position)) - timediff
             text = beautify_ETA(int(totaltime * gst.SECOND))
+        print ('renderer finished position update')
         self.updatePosition(fraction, text)
 
     def updatePosition(self, fraction, text):
