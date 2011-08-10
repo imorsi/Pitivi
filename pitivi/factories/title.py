@@ -38,7 +38,15 @@ class TitleSourceFactory(SourceFactory):
         bin.queue.props.max_size_bytes = 0
         bin.queue.props.max_size_time = 0
         #bin.queue.props.max_size_buffers = 3
-        csp = gst.element_factory_make('alphacolor')
+        if not output_stream.has_alpha():
+            csp = gst.element_factory_make("ffmpegcolorspace",
+                "internal-colorspace")
+        elif output_stream.videotype == 'video/x-raw-rgb':
+            csp = gst.element_factory_make("alphacolor",
+                "internal-alphacolor")
+        else:
+            csp = gst.element_factory_make("identity")
+        #csp = gst.element_factory_make('alphacolor')
         bin.freeze = gst.element_factory_make("imagefreeze")
         bin.alpha = gst.element_factory_make("alpha", "internal-alpha")
         try:

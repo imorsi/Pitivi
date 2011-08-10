@@ -340,9 +340,13 @@ class Pipeline(Signallable, Loggable):
         @raise PipelineError: If the position couldn't be obtained.
         """
         self.log("format %r", format)
+        print 'pipelinet getting pos'
+        print 'format: ', format
         try:
             cur, format = self._pipeline.query_position(format)
         except Exception, e:
+            print 'pipeline couldnt get pos'
+            print e
             self.handleException(e)
             raise PipelineError("Couldn't get position")
         self.log("Got position %s", gst.TIME_ARGS(cur))
@@ -393,16 +397,21 @@ class Pipeline(Signallable, Loggable):
         self._listening = False
 
     def _positionListenerCb(self):
+        print 'tryin getting position'
         try:
             cur = self.getPosition()
+            print 'pipeline pos: ',cur
             if cur != gst.CLOCK_TIME_NONE:
                 self.emit('position', cur)
+            return True
         finally:
             return True
 
     def _listenToPosition(self, listen=True):
         # stupid and dumm method, not many checks done
         # i.e. it does NOT check for current state
+        print 'pipeline listen for position', listen
+        print 'interval: ', self._listeningInterval
         if listen:
             if self._listening and self._listeningSigId == 0:
                 self._listeningSigId = gobject.timeout_add(self._listeningInterval,
